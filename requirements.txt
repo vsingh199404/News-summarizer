@@ -1,0 +1,9 @@
+torch
+transformers
+datasets
+sentencepiece
+rouge-score
+streamlit
+python-docx
+PyPDF2
+protobuf

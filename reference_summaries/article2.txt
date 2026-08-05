@@ -1,0 +1,1 @@
+Stanford researchers developed MedAI-3, an AI system that diagnoses diseases more accurately than human doctors. The system achieved 94 percent accuracy in identifying cancer from medical images, surpassing radiologists. The FDA has granted it breakthrough device designation, though concerns remain about privacy and algorithmic bias.

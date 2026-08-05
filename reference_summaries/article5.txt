@@ -1,0 +1,1 @@
+Google's quantum processor Willow performed a calculation in four minutes that would take a classical supercomputer 10 septillion years. The 105-qubit processor solved the quantum error correction challenge, making scalable quantum computing feasible. The breakthrough is expected to accelerate advances in drug discovery, materials science, and AI.
