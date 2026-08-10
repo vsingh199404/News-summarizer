@@ -249,7 +249,7 @@ def main():
         <div class='team-card'>
             <div class='team-member'>
                 <div><b>Vishal Singh Tomar</b><br><span style='color:#94a3b8;font-size:0.8em;'>2025AA05331</span></div>
-                <span class='badge badge-blue'>60%</span>
+                <span class='badge badge-blue'>40%</span>
             </div>
             <div class='team-member'>
                 <div><b>Vivek Sharma</b><br><span style='color:#94a3b8;font-size:0.8em;'>2025AA05588</span></div>
@@ -257,7 +257,7 @@ def main():
             </div>
             <div class='team-member'>
                 <div><b>Yash</b><br><span style='color:#94a3b8;font-size:0.8em;'>2024AD05399</span></div>
-                <span class='badge badge-purple'>10%</span>
+                <span class='badge badge-purple'>30%</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
