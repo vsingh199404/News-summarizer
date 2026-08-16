@@ -168,13 +168,13 @@ graph TD
     classDef component fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
     classDef highlight fill:#1e3a8a,stroke:#3b82f6,stroke-width:1px,color:#93c5fd;
 
-    subgraph InputPhase [1. INPUT & PREPROCESSING]
+    subgraph InputPhase ["1. INPUT & PREPROCESSING"]
         A[Raw News Article] -->|Prepend 'summarize: '| B[SentencePiece Tokenizer]
         B -->|Token ID Sequence| C[Embedding & Positional Bias]
     end
     class InputPhase phase;
 
-    subgraph EncoderStack [2. T5 ENCODER (6 Layers)]
+    subgraph EncoderStack ["2. T5 ENCODER (6 Layers)"]
         C --> D[Multi-Head Self-Attention]
         D --> E[Pre-Layer Normalization]
         E --> F[Gated-GeLU Feed-Forward Network]
@@ -186,7 +186,7 @@ graph TD
     G -->|Encoder Hidden States| H[Cross-Attention Bridge]
     class H highlight;
 
-    subgraph DecoderStack [3. T5 DECODER (6 Layers)]
+    subgraph DecoderStack ["3. T5 DECODER (6 Layers)"]
         I[Target Tokens Shifted Right] --> J[Masked Self-Attention]
         J --> K[Pre-Layer Normalization]
         H -.->|Key-Value Projection| L[Encoder-Decoder Cross-Attention]
@@ -197,7 +197,7 @@ graph TD
     class DecoderStack phase;
     class J,K,L,M,N component;
 
-    subgraph OutputPhase [4. GENERATION & DECODING]
+    subgraph OutputPhase ["4. GENERATION & DECODING"]
         N --> O[Linear Output Projection]
         O --> P[Softmax Logits Probability]
         P --> Q[Beam Search Decoding]
