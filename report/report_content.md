@@ -158,33 +158,110 @@ We use **T5-Small (Text-to-Text Transfer Transformer)** — a Seq2Seq Transforme
 
 **T5 Encoder-Decoder Architecture:**
 
+We model the T5 architecture below. First, the interactive/rendered flow diagram (using Mermaid), followed by the Unicode-based structural block diagram.
+
+```mermaid
+graph TD
+    %% Define Styles
+    classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+    classDef phase fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#60a5fa,font-weight:bold;
+    classDef component fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+    classDef highlight fill:#1e3a8a,stroke:#3b82f6,stroke-width:1px,color:#93c5fd;
+
+    subgraph InputPhase [1. INPUT & PREPROCESSING]
+        A[Raw News Article] -->|Prepend 'summarize: '| B[SentencePiece Tokenizer]
+        B -->|Token ID Sequence| C[Embedding & Positional Bias]
+    end
+    class InputPhase phase;
+
+    subgraph EncoderStack [2. T5 ENCODER (6 Layers)]
+        C --> D[Multi-Head Self-Attention]
+        D --> E[Pre-Layer Normalization]
+        E --> F[Gated-GeLU Feed-Forward Network]
+        F --> G[Residual Connections & Norm]
+    end
+    class EncoderStack phase;
+    class D,E,F,G component;
+
+    G -->|Encoder Hidden States| H[Cross-Attention Bridge]
+    class H highlight;
+
+    subgraph DecoderStack [3. T5 DECODER (6 Layers)]
+        I[Target Tokens Shifted Right] --> J[Masked Self-Attention]
+        J --> K[Pre-Layer Normalization]
+        H -.->|Key-Value Projection| L[Encoder-Decoder Cross-Attention]
+        K --> L
+        L --> M[Gated-GeLU Feed-Forward Network]
+        M --> N[Residual Connections & Norm]
+    end
+    class DecoderStack phase;
+    class J,K,L,M,N component;
+
+    subgraph OutputPhase [4. GENERATION & DECODING]
+        N --> O[Linear Output Projection]
+        O --> P[Softmax Logits Probability]
+        P --> Q[Beam Search Decoding]
+        Q --> R[SentencePiece Detokenizer]
+        R --> S[Final Abstractive Summary]
+    end
+    class OutputPhase phase;
+    class O,P,Q,R component;
+    class S highlight;
 ```
-Input Article → [Tokenizer] → Token IDs
-                                   ↓
-                          ┌─────────────────┐
-                          │    ENCODER       │
-                          │  (6 Layers)      │
-                          │                  │
-                          │  Self-Attention   │
-                          │  + Feed-Forward   │
-                          │  + Layer Norm     │
-                          └────────┬─────────┘
-                                   ↓
-                          Encoder Hidden States
-                                   ↓
-                          ┌─────────────────┐
-                          │    DECODER       │
-                          │  (6 Layers)      │
-                          │                  │
-                          │  Masked Self-Attn │
-                          │  Cross-Attention  │
-                          │  + Feed-Forward   │
-                          │  + Layer Norm     │
-                          └────────┬─────────┘
-                                   ↓
-                          [Beam Search Decoding]
-                                   ↓
-                          Summary Token IDs → [Detokenizer] → Summary Text
+
+#### Unicode Structural Flowchart
+
+```text
+                                 ┌─────────────────────────┐
+                                 │    Raw News Article     │
+                                 └────────────┬────────────┘
+                                              │ (Prepend "summarize: ")
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │  SentencePiece Tokenizer│
+                                 └────────────┬────────────┘
+                                              │ (Token ID Sequence)
+                                              ▼
+                        ╔═════════════════════════════════════════╗
+                        ║           T5 ENCODER STACK              ║
+                        ║ ─────────────────────────────────────── ║
+                        ║  - Input Embedding + Positional Bias    ║
+                        ║  - 6x Transformer Blocks containing:     ║
+                        ║    * Multi-Head Self-Attention          ║
+                        ║    * Pre-Layer Normalization            ║
+                        ║    * Gated-GeLU Feed-Forward Network    ║
+                        ║    * Residual Connections               ║
+                        ╚═════════════════════┬═══════════════════╝
+                                              │
+                                              │ (Encoder Hidden States)
+                                              │
+                        ╔═════════════════════▼═══════════════════╗
+                        ║           T5 DECODER STACK              ║
+                        ║ ─────────────────────────────────────── ║
+                        ║  - Target Word Embedding Layer          ║
+                        ║  - 6x Transformer Blocks containing:     ║
+                        ║    * Masked Multi-Head Self-Attention   ║
+                        ║    * Encoder-Decoder Cross-Attention    ║
+                        ║    * Pre-Layer Normalization            ║
+                        ║    * Gated-GeLU Feed-Forward Network    ║
+                        ║    * Residual Connections               ║
+                        ╚═════════════════════┬═══════════════════╝
+                                              │
+                                              │ (Token Prediction Logits)
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │  Beam Search Generator  │
+                                 └────────────┬────────────┘
+                                              │ (Selected Tokens)
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │       Detokenizer       │
+                                 └────────────┬────────────┘
+                                              │
+                                              ▼
+                                 ┌─────────────────────────┐
+                                 │  Generated Summary Text │
+                                 └─────────────────────────┘
 ```
 
 ### 3.2 Inference Configuration
