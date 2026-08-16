@@ -7,9 +7,9 @@
 
 | Name | BITS ID | Contribution % |
 |------|---------|----------------|
-| Vishal Singh Tomar | 2025AA05331 | 60% |
-| Vivek Sharma | 2025AA05588 | 30% |
-| Yash | 2024AD05399 | 10% |
+| Vishal Singh Tomar | 2025AA05331 | 100% |
+| Vivek Sharma | 2025AA05588 | 100% |
+| Yash | 2024AD05399 | 100% |
 
 **Course:** BITS OSHA Virtual Lab  
 **Subject:** Natural Language Processing  
