@@ -1,6 +1,6 @@
 """
 News Article Text Summarization - Streamlit Web Application
-BITS OSHA Virtual Lab Assignment
+Natural Language Processing - Assignment 2
 
 A premium Streamlit application for news article summarization
 using an Encoder-Decoder Transformer (T5) model.
@@ -272,7 +272,7 @@ def main():
 
         st.markdown(
             "<p style='font-size:0.75em; color:#475569; text-align:center; margin-top:20px;'>"
-            "BITS OSHA Virtual Lab<br>News Article Summarization</p>",
+            "Natural Language Processing - Assignment 2<br>News Article Text Summarization</p>",
             unsafe_allow_html=True
         )
 

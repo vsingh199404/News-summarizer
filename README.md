@@ -1,6 +1,6 @@
 # 📰 News Article Text Summarization
 
-An end-to-end News Article Summarization Application using an **Encoder-Decoder Transformer (T5)** model, built for the **BITS OSHA Virtual Lab** assignment.
+An end-to-end News Article Summarization Application using an **Encoder-Decoder Transformer (T5)** model, built for the **Natural Language Processing** course (**Assignment 2: News Article Text Summarization**).
 
 ## Team
 

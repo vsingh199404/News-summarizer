@@ -1,5 +1,5 @@
 # News Article Text Summarization
-## BITS OSHA Virtual Lab — Project Report
+## Natural Language Processing — Assignment 2: News Article Text Summarization
 
 ---
 
@@ -11,9 +11,8 @@
 | Vivek Sharma | 2025AA05588 | 100% |
 | Yash | 2024AD05399 | 100% |
 
-**Course:** BITS OSHA Virtual Lab  
-**Subject:** Natural Language Processing  
-**Course LF:** Vasugi I (vasugii@wilp.bits-pilani.ac.in)
+**Course:** Natural Language Processing  
+**Assignment:** Assignment 2: News Article Text Summarization  
 
 ---
 
@@ -493,4 +492,4 @@ news_summarizer/
 
 *Report prepared by: Vishal Singh Tomar (2025AA05331), Vivek Sharma (2025AA05588), Yash (2024AD05399)*  
 *Date: August 2026*  
-*BITS Pilani — OSHA Virtual Lab*
+*Natural Language Processing — Assignment 2*
