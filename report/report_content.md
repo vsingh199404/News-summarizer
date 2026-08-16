@@ -212,56 +212,46 @@ graph TD
 #### Unicode Structural Flowchart
 
 ```text
-                                 ┌─────────────────────────┐
-                                 │    Raw News Article     │
-                                 └────────────┬────────────┘
-                                              │ (Prepend "summarize: ")
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │  SentencePiece Tokenizer│
-                                 └────────────┬────────────┘
-                                              │ (Token ID Sequence)
-                                              ▼
-                        ╔═════════════════════════════════════════╗
-                        ║           T5 ENCODER STACK              ║
-                        ║ ─────────────────────────────────────── ║
-                        ║  - Input Embedding + Positional Bias    ║
-                        ║  - 6x Transformer Blocks containing:     ║
-                        ║    * Multi-Head Self-Attention          ║
-                        ║    * Pre-Layer Normalization            ║
-                        ║    * Gated-GeLU Feed-Forward Network    ║
-                        ║    * Residual Connections               ║
-                        ╚═════════════════════┬═══════════════════╝
-                                              │
-                                              │ (Encoder Hidden States)
-                                              │
-                        ╔═════════════════════▼═══════════════════╗
-                        ║           T5 DECODER STACK              ║
-                        ║ ─────────────────────────────────────── ║
-                        ║  - Target Word Embedding Layer          ║
-                        ║  - 6x Transformer Blocks containing:     ║
-                        ║    * Masked Multi-Head Self-Attention   ║
-                        ║    * Encoder-Decoder Cross-Attention    ║
-                        ║    * Pre-Layer Normalization            ║
-                        ║    * Gated-GeLU Feed-Forward Network    ║
-                        ║    * Residual Connections               ║
-                        ╚═════════════════════┬═══════════════════╝
-                                              │
-                                              │ (Token Prediction Logits)
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │  Beam Search Generator  │
-                                 └────────────┬────────────┘
-                                              │ (Selected Tokens)
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │       Detokenizer       │
-                                 └────────────┬────────────┘
-                                              │
-                                              ▼
-                                 ┌─────────────────────────┐
-                                 │  Generated Summary Text │
-                                 └─────────────────────────┘
+           [ INPUT ARTICLE ]                      [ TARGET TOKENS ]
+                   │                                      │
+                   ▼                                      ▼
+         ┌───────────────────┐                  ┌───────────────────┐
+         │    Tokenizer      │                  │    Tokenizer      │
+         └─────────┬─────────┘                  └─────────┬─────────┘
+                   │ (Source Tokens)                      │ (Shifted Targets)
+                   ▼                                      ▼
+         ╔═══════════════════╗                  ╔═══════════════════╗
+         ║    T5 ENCODER     ║                  ║    T5 DECODER     ║
+         ║ ───────────────── ║                  ║ ───────────────── ║
+         ║ 6x Blocks:        ║                  ║ 6x Blocks:        ║
+         ║  - Self-Attention ║                  ║  - Masked Self-At ║
+         ║  - Gated-GeLU FFN ║                  ║  - Cross-Attention║◄──┐
+         ║  - Layer Norm     ║                  ║  - Gated-GeLU FFN ║   │
+         ╚─────────┬─────────╝                  ╚─────────┬─────────╝   │
+                   │                                      │             │
+                   │ (Encoder States)                     │             │
+                   └──────────────────────────────────────┼─────────────┘
+                                                          │ (Predictions)
+                                                          ▼
+                                                ╔═══════════════════╗
+                                                ║   LINEAR OUTPUT   ║
+                                                ║  Softmax Logits   ║
+                                                ╚─────────┬─────────╝
+                                                          │
+                                                          ▼
+                                                ┌───────────────────┐
+                                                │    Beam Search    │
+                                                └─────────┬─────────┘
+                                                          │ (Selected IDs)
+                                                          ▼
+                                                ┌───────────────────┐
+                                                │   Detokenizer     │
+                                                └─────────┬─────────┘
+                                                          │
+                                                          ▼
+                                                ┌───────────────────┐
+                                                │ Generated Summary │
+                                                └───────────────────┘
 ```
 
 ### 3.2 Inference Configuration
@@ -348,27 +338,78 @@ to a warming effect known as the greenhouse effect.
 
 ### 4.2 Application Architecture
 
+We present the modular application architecture below. First, the interactive component relationship model (using Mermaid), followed by the Unicode-based layout overview.
+
+```mermaid
+graph TD
+    %% Define Styles
+    classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+    classDef app fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#60a5fa,font-weight:bold;
+    classDef tab fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+    classDef core fill:#1e3a8a,stroke:#3b82f6,stroke-width:1px,color:#93c5fd;
+    classDef file fill:#334155,stroke:#475569,stroke-width:1px,color:#cbd5e1;
+
+    subgraph WebUI ["Streamlit Web Interface (app.py)"]
+        direction LR
+        T1["Summarize Tab"]
+        T2["Evaluate Tab"]
+        T3["Batch Demo Tab"]
+    end
+    class WebUI app;
+    class T1,T2,T3 tab;
+
+    subgraph Engine ["Core Engine Module (model.py)"]
+        M["NewsSummarizer Manager"]
+        M -->|Loads Model| M_T5["T5-Small Transformer"]
+    end
+    class Engine core;
+    class M,M_T5 tab;
+
+    T1 -->|Input Text / File| M
+    T2 -->|Calculates Metrics| E_Module["Evaluation Module (evaluate.py)"]
+    T3 -->|Processes Samples| M
+
+    subgraph Modules ["Supporting Components"]
+        P_Module["preprocess.py"]
+        E_Module["evaluate.py"]
+        S_Articles[("sample_articles/")]
+    end
+    class Modules file;
+    class P_Module,E_Module,S_Articles tab;
+
+    M -->|Cleans Text| P_Module
+    M -->|ROUGE Scoring| E_Module
+    T3 -->|Reads Data| S_Articles
 ```
-┌────────────────────────────────────────────────┐
-│              Streamlit Web App (app.py)         │
-│                                                 │
-│  ┌─────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │Summarize│  │ Evaluate │  │  Batch Demo   │  │
-│  │  Tab    │  │   Tab    │  │     Tab       │  │
-│  └────┬────┘  └────┬─────┘  └──────┬────────┘  │
-│       │            │               │            │
-│       ▼            ▼               ▼            │
-│  ┌─────────────────────────────────────────┐    │
-│  │         NewsSummarizer (model.py)       │    │
-│  │  T5-Small Encoder-Decoder Transformer    │    │
-│  └─────────────────────────────────────────┘    │
-│       │            │               │            │
-│       ▼            ▼               ▼            │
-│  ┌──────────┐ ┌──────────┐  ┌────────────┐     │
-│  │preprocess│ │ evaluate │  │   sample   │     │
-│  │  .py     │ │   .py    │  │  articles  │     │
-│  └──────────┘ └──────────┘  └────────────┘     │
-└────────────────────────────────────────────────┘
+
+#### Unicode Layout Overview
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                       STREAMLIT WEB APPLICATION (app.py)               │
+│ ────────────────────────────────────────────────────────────────────── │
+│   ┌───────────────────┐    ┌───────────────────┐    ┌──────────────┐   │
+│   │   Summarize Tab   │    │   Evaluate Tab    │    │  Batch Demo  │   │
+│   │   (User Input)    │    │ (ROUGE Scoring)   │    │  (Bulk Run)  │   │
+│   └─────────┬─────────┘    └─────────┬─────────┘    └──────┬───────┘   │
+└─────────────┼────────────────────────┼─────────────────────┼───────────┘
+                 │                        │                     │
+                 ▼                        ▼                     ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                       CORE ENGINE LAYER (model.py)                     │
+│ ────────────────────────────────────────────────────────────────────── │
+│   ┌────────────────────────────────────────────────────────────────┐   │
+│   │                     NewsSummarizer Manager                     │   │
+│   │            - Manages T5 Model State & Inference Tokenizer      │   │
+│   └────────────────────────────────┬───────────────────────────────┘   │
+└────────────────────────────────────┼───────────────────────────────────┘
+                                     │
+              ┌──────────────────────┼──────────────────────┐
+              ▼                      ▼                      ▼
+┌──────────────────────────┐┌──────────────────┐┌────────────────────────┐
+│ TEXT CLEANING & NORMAL.  ││ ROUGE EVALUATION ││   SAMPLE DATASETS      │
+│    (preprocess.py)       ││  (evaluate.py)   ││   (sample_articles/)   │
+└──────────────────────────┘└──────────────────┘└────────────────────────┘
 ```
 
 ### 4.3 Application Features
